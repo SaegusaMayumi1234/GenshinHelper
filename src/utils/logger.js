@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import winston from 'winston';
 import { SPLAT } from 'triple-beam';
-import fs from 'fs';
 import 'winston-daily-rotate-file';
 
 const monthToNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -13,6 +12,8 @@ const levels = {
   debug: 4,
 };
 const longestStr = Math.max(...Object.keys(levels).map((key) => key.length));
+const fileTransports = {};
+let currentDirName = null;
 
 function colorizeLevel(level) {
   let res = level;
@@ -62,46 +63,42 @@ function getFormat() {
   );
 }
 
-function getDirName() {
-  const currDate = new Date();
-  return `${currDate.getUTCFullYear()}/${('0' + (currDate.getUTCMonth() + 1)).slice(-2)}-${monthToNames[currDate.getUTCMonth()]}`;
-}
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'http',
+  levels,
+  format: getFormat(),
+});
 
-function createNewDailyRotateFile(type, level) {
-  return new winston.transports.DailyRotateFile({
-    dirname: `logs/${getDirName()}`,
+function updateTransport(dirname, type, level) {
+  const newTransport = new winston.transports.DailyRotateFile({
+    dirname: `logs/${dirname}`,
     filename: `%DATE%-log-${type}`,
     datePattern: 'YYYY-MM-DD',
     level: level,
     extension: '.log',
     utc: true,
   });
+
+  if (fileTransports[type]) {
+    logger.remove(fileTransports[type]);
+    fileTransports[type].close();
+  }
+
+  logger.add(newTransport);
+  fileTransports[type] = newTransport;
 }
 
-let transportAll = createNewDailyRotateFile('all', 'debug');
+function checkTransport() {
+  const currDate = new Date();
+  const dirname = `${currDate.getUTCFullYear()}/${('0' + (currDate.getUTCMonth() + 1)).slice(-2)}-${monthToNames[currDate.getUTCMonth()]}`;
 
-let transportError = createNewDailyRotateFile('error', 'error');
-
-transportAll.on('rotate', () => {
-  if (!fs.existsSync(`logs/${getDirName()}/`)) {
-    transportAll = createNewDailyRotateFile('all', 'debug');
+  if (currentDirName !== dirname) {
+    updateTransport(dirname, 'all', 'debug');
+    updateTransport(dirname, 'error', 'error');
   }
-});
 
-transportError.on('rotate', () => {
-  if (!fs.existsSync(`logs/${getDirName()}/`)) {
-    transportError = createNewDailyRotateFile('error', 'error');
-  }
-});
-
-const transports = [transportError, transportAll];
-
-const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'http',
-  levels,
-  format: getFormat(),
-  transports,
-});
+  currentDirName = dirname;
+}
 
 function formatLog(data) {
   return data.map((value) => (value instanceof Error ? value.stack : value)).join(' ');
@@ -117,6 +114,7 @@ export default {
    * @param {...any} data - The data to log.
    */
   error: (...data) => {
+    checkTransport();
     logger.error(formatLog(data), ...data);
   },
 
@@ -125,6 +123,7 @@ export default {
    * @param {...any} data - The data to log.
    */
   warn: (...data) => {
+    checkTransport();
     logger.warn(formatLog(data), ...data);
   },
 
@@ -133,6 +132,7 @@ export default {
    * @param {...any} data - The data to log.
    */
   info: (...data) => {
+    checkTransport();
     logger.info(formatLog(data), ...data);
   },
 
@@ -141,6 +141,7 @@ export default {
    * @param {...any} data - The data to log.
    */
   http: (...data) => {
+    checkTransport();
     logger.http(formatLog(data), ...data);
   },
 
@@ -149,6 +150,7 @@ export default {
    * @param {...any} data - The data to log.
    */
   debug: (...data) => {
+    checkTransport();
     logger.debug(formatLog(data), ...data);
   },
 };
