@@ -6,7 +6,7 @@ dotenv.config();
 const envSchema = Joi.object()
   .keys({
     NODE_ENV: Joi.string().valid('production', 'development').required(),
-    DISCORD_TOKEN: Joi.string(),
+    DISCORD_TOKEN: Joi.string().required(),
     MONGODB_URI: Joi.string()
       .uri({ scheme: ['mongodb', 'mongodb+srv'] })
       .required(),

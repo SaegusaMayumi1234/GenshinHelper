@@ -3,6 +3,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 
 import logger from '../utils/logger.js';
+import BaseEvent from '../models/baseEvent.js';
 
 /**
  * Dynamically loads and registers events for a Discord.js client.
@@ -18,26 +19,36 @@ export async function registerEvents(client, eventsDir) {
   for (const file of eventFiles) {
     try {
       const filePath = path.join(eventsPath, file);
-      const event = await import(pathToFileURL(filePath).href);
-      if (!event || !event.default) {
-        logger.error(`Event file "${file}" does not export a default handler.`);
+      const eventFile = await import(pathToFileURL(filePath).href);
+      if (!eventFile || !eventFile.default) {
+        logger.error(`Skipping event file "${file}" as it does not export a default handler.`);
         continue;
       }
 
-      const { name, once, execute } = event.default;
-
-      if (!name || typeof name !== 'string') {
-        logger.error(`Event file "${file}" is missing a valid "name" property.`);
+      const EventClass = eventFile.default;
+      if (!(EventClass.prototype instanceof BaseEvent)) {
+        logger.error(`Skipping event file "${file}" as it does not extend BaseEvent.`);
         continue;
       }
 
-      if (once) {
-        client.once(name, (...args) => execute(...args, client));
+      /**
+       * Event class extended from BaseEvent.
+       * @type {BaseEvent}
+       */
+      const event = new EventClass(client);
+      if (!event.name || event.name === '') {
+        logger.error(`Skipping event file "${file}" as it does not specify event name.`);
+        continue;
+      }
+
+      const handler = (...args) => event.handle(...args);
+      if (event.once) {
+        client.once(event.name, handler);
       } else {
-        client.on(name, (...args) => execute(...args, client));
+        client.on(event.name, handler);
       }
 
-      logger.info(`Event "${name}" has been registered successfully from file "${file}".`);
+      logger.info(`Loaded event listener "${event.name}" from file "${file}".`);
     } catch (error) {
       logger.error(`Failed to load event file "${file}"`, error);
     }
