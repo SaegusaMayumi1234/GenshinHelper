@@ -5,18 +5,18 @@
 export default class BaseEvent {
   /**
    * Creates an instance of the BaseEvent.
-   * @param {import('discord.js').Client} client - The Discord client.
+   * @param {import('./baseClient.js').default} client - The Discord client.
    */
   constructor(client) {
     /**
      * The Discord client instance used for interaction with the Discord API.
-     * @type {import('discord.js').Client}
+     * @type {import('./baseClient.js').default}
      */
     this.client = client;
     
     /**
      * The name of the event to listen for (e.g., 'ready', 'interactionCreate').
-     * @type {string}
+     * @type {import('discord.js').Events}
      */
     this.name = '';
 

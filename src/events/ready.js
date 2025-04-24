@@ -1,10 +1,11 @@
+import { Events } from 'discord.js';
 import BaseEvent from '../models/baseEvent.js';
 import logger from '../utils/logger.js';
 
 export default class ReadyEvent extends BaseEvent {
   constructor(client) {
     super(client);
-    this.name = 'ready';
+    this.name = Events.ClientReady;
     this.once = true;
   }
 

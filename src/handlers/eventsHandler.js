@@ -7,7 +7,7 @@ import BaseEvent from '../models/baseEvent.js';
 
 /**
  * Dynamically loads and registers events for a Discord.js client.
- * @param {import('discord.js').Client} client - The Discord.js client instance.
+ * @param {import('../models/baseClient.js').default} client - The Discord.js client instance.
  * @param {string} eventsDir - Path to the directory containing event files.
  */
 export async function registerEvents(client, eventsDir) {
@@ -33,7 +33,7 @@ export async function registerEvents(client, eventsDir) {
 
       /**
        * Event class extended from BaseEvent.
-       * @type {BaseEvent}
+       * @type {import('../models/baseEvent.js').default}
        */
       const event = new EventClass(client);
       if (!event.name || event.name === '') {
