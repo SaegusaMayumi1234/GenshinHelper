@@ -4,31 +4,33 @@
   "main": "./src/index.js",
   "scripts": {
     "start": "node ./src/index.js",
-    "dev": "nodemon ./src/index.js"
+    "dev": "nodemon ./src/index.js",
+    "deploy:global": "node ./src/scripts/deployGlobalCommands.js",
+    "deploy:guild": "node ./src/scripts/deployGuildCommands.js"
   },
   "repository": "https://github.com/SaegusaMayumi1234/GenshinHelper.git",
   "author": "IcarusPhantom",
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "axios": "^1.7.9",
+    "axios": "^1.8.4",
     "chalk": "^5.4.1",
     "croner": "^9.0.0",
     "discord.js": "^14.18.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "joi": "^17.13.3",
-    "mongoose": "^8.10.0",
+    "mongoose": "^8.13.2",
     "triple-beam": "^1.4.1",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "eslint": "^9.20.1",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-jsdoc": "^50.6.3",
-    "globals": "^15.14.0",
-    "nodemon": "^3.1.9",
-    "prettier": "^3.5.0"
+    "@eslint/js": "^9.25.1",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-jsdoc": "^50.6.10",
+    "globals": "^16.0.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
   }
 }
